@@ -71,7 +71,7 @@ console.log("Cumulative Production (Np):", np);
   const q2 = selectedPoints[1].q;
 
   try {
-    const res = await axios.post("http://localhost:8000/calculate", {
+    const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/calculate`, {
       t1,
       q1,
       t2,
