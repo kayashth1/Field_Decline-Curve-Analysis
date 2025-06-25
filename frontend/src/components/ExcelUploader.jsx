@@ -14,44 +14,68 @@ function ExcelUploader() {
   const [NpObserved, setNpObserved] = useState([]);
   const [NpExtrapolated, setNpExtrapolated] = useState([]);
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const binaryStr = evt.target.result;
-      const workbook = XLSX.read(binaryStr, { type: "binary" });
-      
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(sheet);
+ const handleFileUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-      const x = jsonData.map((row) => {
-        const excelDate = row.Date;
-        const jsDate = XLSX.SSF.parse_date_code(excelDate);
-        return new Date(jsDate.y, jsDate.m - 1, jsDate.d)
-        .toISOString()
-        .split("T")[0];
-      });
-      
-      const y = jsonData.map((row) => row.FlowRate);
-      
-      setData(jsonData);
-      setDisplayDates(x);
-      setPlotData({ x, y });
-      setSelectedPoints([]);
-      setDeclineCurve([]);
-      let cumulative = 0;
-     const np = y.map((val) => {
-  cumulative += val;
-  return cumulative / 1_000_000;
-});
-console.log("Cumulative Production (Np):", np);
-      setNpObserved(np);
-      setNpExtrapolated([]);
-    };
-    reader.readAsBinaryString(file);
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const binaryStr = evt.target.result;
+    const workbook = XLSX.read(binaryStr, { type: "binary" });
+
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    const dates = [];
+    const flowRates = [];
+
+    jsonData.forEach((row) => {
+      let parsedDate = null;
+
+      const rawDate = row.Date;
+
+      if (typeof rawDate === "number") {
+        const jsDate = XLSX.SSF.parse_date_code(rawDate);
+        parsedDate = new Date(jsDate.y, jsDate.m - 1, jsDate.d);
+      } else if (typeof rawDate === "string") {
+        const tryDate = new Date(rawDate);
+        if (!isNaN(tryDate.getTime())) {
+          parsedDate = tryDate;
+        }
+      }
+
+      if (parsedDate) {
+        const iso = parsedDate.toISOString().split("T")[0];
+        dates.push(iso);
+        flowRates.push(Number(row.FlowRate || 0));
+      }
+    });
+
+    if (dates.length === 0 || flowRates.length === 0) {
+      alert("Failed to parse Excel file. Check column headers and date format.");
+      return;
+    }
+
+    setData(jsonData);
+    setDisplayDates(dates);
+    setPlotData({ x: dates, y: flowRates });
+    setSelectedPoints([]);
+    setDeclineCurve([]);
+
+    let cumulative = 0;
+    const np = flowRates.map((val) => {
+      cumulative += val;
+      return cumulative / 1_000_000;
+    });
+    setNpObserved(np);
+    setNpExtrapolated([]);
   };
+
+  reader.readAsBinaryString(file);
+};
+
+
   
   const handlePointClick = (data) => {
     const point = data.points[0];
@@ -138,7 +162,7 @@ console.log("Cumulative Production (Np):", np);
             <Plot
               data={[
                 {
-                  x: displayDates,
+                  x: plotData.x,
                   y: plotData.y,
                   type: "scatter",
                   mode: "lines+markers",
