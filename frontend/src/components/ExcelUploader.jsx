@@ -46,7 +46,7 @@ function ExcelUploader() {
       }
 
       if (parsedDate) {
-        const iso = parsedDate.toISOString().split("T")[0];
+        const iso = parsedDate.toLocaleDateString("en-CA");
         dates.push(iso);
         flowRates.push(Number(row.FlowRate || 0));
       }
@@ -93,6 +93,7 @@ function ExcelUploader() {
   const t2 = selectedPoints[1].t;
   const q1 = selectedPoints[0].q;
   const q2 = selectedPoints[1].q;
+  console.log("Calculating decline with:",q2);
 
   try {
     const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/calculate`, {
@@ -104,6 +105,7 @@ function ExcelUploader() {
     });
 
     setDeclineCurve(res.data);
+    console.log("Decline curve response:", res.data);
     const extrapolated = res.data.curve || [];
 
     let cumulative = 0;
