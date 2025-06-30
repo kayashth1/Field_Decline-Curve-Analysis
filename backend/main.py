@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from typing import List
 import math
 import numpy as np
+from typing import Optional
+from datetime import datetime, timedelta
 
 app = FastAPI()
 
@@ -21,32 +23,84 @@ class DeclineInput(BaseModel):
     t2: float
     q2: float
     original_q: List[float]  
+    decline_type: str
+    start_date: str 
+    qf: float
 
 @app.post("/calculate")
 def calculate_decline(data: DeclineInput):
     t1, q1, t2, q2 = data.t1, data.q1, data.t2, data.q2
-    D = (math.log(q1 / q2)) / (t2 - t1)
+    decline_type = data.decline_type.lower()
+    qf = data.qf
 
     result = []
     t_range = np.arange(t1, t2 + 1, 1)
-    t_extra = np.arange(t2 + 1, t2 + 800, 1)
+    t_final = None 
+
+    if decline_type == "exponential":
+        D = (math.log(q1 / q2)) / (t2 - t1)
+        for t in t_range:
+            qt = q1 * math.exp(-D * (t - t1))
+            result.append({"t": float(t), "qt": qt})
+        t = t2 + 1
+        while True:
+            qt = q1 * math.exp(-D * (t - t1))
+            if qt <= qf:
+                t_final = t
+                break
+            result.append({"t": float(t), "qt": qt})
+            t += 1
+        Np_extrapolated = q2 / D
+
+    elif decline_type == "harmonic":
+        D = (q1 - q2) / (q2 * (t2 - t1))
+        for t in t_range:
+            qt = q1 / (1 + D * (t - t1))
+            result.append({"t": float(t), "qt": qt})
+        t = t2 + 1
+        while True:
+            qt = q1 / (1 + D * (t - t1))
+            if qt <= qf:
+                t_final = t
+                break
+            result.append({"t": float(t), "qt": qt})
+            t += 1
+        Np_extrapolated = (q2 / D) * math.log(q2 / qf)
+
+    elif decline_type == "hyperbolic":
+        b = 0.5
+        D = ((q1 / q2) ** b - 1) / (b * (t2 - t1))
+        for t in t_range:
+            qt = q1 / ((1 + b * D * (t - t1)) ** (1 / b))
+            result.append({"t": float(t), "qt": qt})
+        t = t2 + 1
+        while True:
+            qt = q1 / ((1 + b * D * (t - t1)) ** (1 / b))
+            if qt <= qf:
+                t_final = t
+                break
+            result.append({"t": float(t), "qt": qt})
+            t += 1
+        Np_extrapolated = (q2 ** b) / (D * (1 - b)) * (q2 ** (1 - b) - qf ** (1 - b)) if b != 1 else float("inf")
+
+    else:
+        return {"error": "Invalid decline type"}
 
     original_q = data.original_q
-    Np_observed = sum(original_q[:int(t2)])  
-    Np_extrapolated = q2 / D
-    Np_total = Np_observed + Np_extrapolated
-
-    for t in np.concatenate([t_range, t_extra]):
-        qt = q1 * math.exp(-D * (t - t1))
-        result.append({ "t": float(t), "qt": qt })
+    Np_observed = sum(q / 1_000_000 for q in original_q[:int(t2)])
+    Np_total = Np_observed + Np_extrapolated / 1_000_000
+    start_date = datetime.strptime(data.start_date, "%Y-%m-%d")
+    final_date = (start_date + timedelta(days=t_final)).strftime("%Y-%m-%d")
 
     return {
         "D": D,
         "curve": result,
         "Np_observed": Np_observed,
-        "Np_extrapolated": Np_extrapolated,
-        "Np_total": Np_total
+        "Np_extrapolated": Np_extrapolated / 1_000_000,
+        "Np_total": Np_total,
+        "date_final": final_date
     }
+
 
 if __name__ == "__main__":
     import uvicorn
