@@ -113,7 +113,7 @@ function ExcelUploader() {
           original_q: plotData.y,
           decline_type: declineType,
           start_date: displayDates[0],
-          qf: cutoff_q, 
+          qf: cutoff_q,
         }
       );
 
@@ -149,12 +149,17 @@ function ExcelUploader() {
 
   return (
     <div className="min-h-screen bg-blue-100 py-8 px-4 flex justify-center ">
-      <div className="w-full max-w-3xl p-6  flex flex-col items-center ">
-        <h2 className="text-2xl font-bold mb-10 text-center text-gray-800">
+      <div className="w-full p-6  flex flex-col items-center justify-center ">
+        <h1 className="text-4xl font-bold mb-8 text-center text-gray-800 tracking-wide mb-2">
           Upload Excel File
+        </h1>
+        <h2 className="text-sm text-gray-600 italic mt-2">
+           Note: Excel file should have two columns named{" "}
+          <span className="font-medium text-black">Date</span> &{" "}
+          <span className="font-medium text-black">FlowRate.</span>.
         </h2>
         <select
-          className="border p-2 rounded mb-4"
+          className="border-2 border-gray-300 rounded-md px-4 py-2 mb-6 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 mb-2"
           value={declineType}
           onChange={(e) => setDeclineType(e.target.value)}
         >
@@ -177,7 +182,7 @@ function ExcelUploader() {
         </div>
 
         {plotData.x.length > 0 && (
-          <div className="w-full mt-6">
+          <div className="w-full mt-6 flex flex-col items-center justify-center">
             <h3 className="text-lg font-semibold text-gray-700 text-center mb-5">
               Flow Rate vs Time Decline Plot
             </h3>
@@ -210,8 +215,8 @@ function ExcelUploader() {
                 width: 1000,
                 height: 500,
                 title: "Flow Rate Decline Curve",
-                xaxis: {title: {text: "Date(t) "} },
-                yaxis: { title: {text: "Flow Rate (Q) bbl/day"} },
+                xaxis: { title: { text: "Date(t) " } },
+                yaxis: { title: { text: "Flow Rate (Q) bbl/day" } },
               }}
               onClick={handlePointClick}
               onSelected={(event) => {
@@ -238,7 +243,7 @@ function ExcelUploader() {
           </div>
         )}
         {plotData.y.length > 0 && NpObserved.length > 0 && (
-          <div className="w-full mt-10">
+          <div className="w-full mt-10 flex flex-col items-center justify-center">
             <h3 className="text-lg font-semibold text-gray-700 text-center mb-5">
               Flow Rate vs Cumulative Production
             </h3>
@@ -265,8 +270,8 @@ function ExcelUploader() {
                 width: 1000,
                 height: 500,
                 title: "Flow Rate vs Cumulative Production",
-                xaxis: { title: {text: "Cumulative Production (Np) bbl" }},
-                yaxis: { title: {text: "Flow Rate (Q) bbl/day"} },
+                xaxis: { title: { text: "Cumulative Production (Np) bbl" } },
+                yaxis: { title: { text: "Flow Rate (Q) bbl/day" } },
               }}
             />
           </div>
@@ -305,7 +310,7 @@ function ExcelUploader() {
             >
               Calculate Decline
             </Button>
-            <div className="mb-4 flex items-center justify-center">
+            <div className="mb-4 flex items-center justify-center flex-col">
               <label className="text-sm text-gray-700 font-medium">
                 Cutoff Flow Rate (qf):
               </label>
@@ -314,7 +319,7 @@ function ExcelUploader() {
                 value={cutoff_q}
                 onChange={handleCutoff_q}
                 placeholder="Enter qf (e.g., 5)"
-                className="border rounded p-2 w-32 ml-2 flex justify-center"
+                className="border-b-2 border-black focus:outline-none px-2 py-1 text-center"
               />
             </div>
 
@@ -329,13 +334,18 @@ function ExcelUploader() {
                   <strong>{declineCurve.Np_extrapolated.toFixed(2)}</strong>
                 </p>
                 <div className="mt-4 bg-blue-50 border border-blue-400 text-blue-900 font-bold text-lg px-6 py-4 rounded-lg shadow-md">
-                  Total Cumulative (Np): {declineCurve.Np_total.toFixed(2)} OR{" "}
-                  {declineCurve.Np_total.toFixed(2) / 1000000} MMbbl
+                  Total Cumulative (Np): {declineCurve.Np_total.toFixed(2)}{" "}
+                  MMbbl
                 </div>
-                <div>
-                  {declineCurve.t_final !== null
-                    ? `Abondonment Time (t): ${declineCurve.date_final}`
-                    : null}
+                <div className="mt-2 text-sm text-gray-700 font-medium">
+                  {declineCurve.t_final !== null ? (
+                    <span>
+                      <span className="text-black font-bold">
+                        Abandonment Time (t):
+                      </span>{" "}
+                      {declineCurve.date_final}
+                    </span>
+                  ) : null}
                 </div>
               </div>
             )}

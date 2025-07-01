@@ -10,10 +10,10 @@ function Navbar() {
         <Spacer />
         <HStack spacing={4}>
           <Text fontWeight="bold" >Yash Shrivastav</Text>
-          <Link href="https://github.com/your-github" isExternal>
+          <Link href="https://github.com/kayashth1" isExternal target='blank'>
             <FaGithub size="20px" color="white" />
           </Link>
-          <Link href="https://linkedin.com/in/your-linkedin" isExternal>
+          <Link href="https://www.linkedin.com/in/kayashth1/" isExternal target='blank'>
             <FaLinkedin size="20px" color="white" />
           </Link>
         </HStack>
