@@ -38,7 +38,7 @@ def calculate_decline(data: DeclineInput):
     t_final = None 
 
     if decline_type == "exponential":
-        D = (math.log(q1 / q2)) / (t2 - t1)
+        D = (math.log(q1 / q2)) / (t2 - t1 +1)
         for t in t_range:
             qt = q1 * math.exp(-D * (t - t1))
             result.append({"t": float(t), "qt": qt})
