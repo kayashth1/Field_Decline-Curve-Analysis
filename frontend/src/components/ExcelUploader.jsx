@@ -4,6 +4,7 @@ import Plot from "react-plotly.js";
 import axios from "axios";
 import { Button, FileUpload } from "@chakra-ui/react";
 import { HiUpload } from "react-icons/hi";
+import ExportExcel from "./ExportExcel";
 
 function ExcelUploader() {
   const [data, setData] = useState([]);
@@ -150,7 +151,7 @@ function ExcelUploader() {
   return (
     <div className="min-h-screen bg-blue-100 py-8 px-4 flex justify-center ">
       <div className="w-full p-6  flex flex-col items-center justify-center ">
-        <h1 className="text-4xl font-bold mb-8 text-center text-gray-800 tracking-wide mb-2">
+        <h1 className="text-4xl font-bold text-center text-gray-800 tracking-wide mb-2">
           Upload Excel File
         </h1>
         <h2 className="text-sm text-gray-600 italic mt-2">
@@ -159,7 +160,7 @@ function ExcelUploader() {
           <span className="font-medium text-black">FlowRate.</span>.
         </h2>
         <select
-          className="border-2 border-gray-300 rounded-md px-4 py-2 mb-6 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 mb-2"
+          className="border-2 border-gray-300 rounded-md px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 mb-2"
           value={declineType}
           onChange={(e) => setDeclineType(e.target.value)}
         >
@@ -347,6 +348,7 @@ function ExcelUploader() {
                     </span>
                   ) : null}
                 </div>
+                <ExportExcel data={declineCurve.curve} fileName={"DCA_Data"}/>
               </div>
             )}
           </div>
